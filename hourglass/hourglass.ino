@@ -99,6 +99,9 @@ void setup() {
   lc.shutdown(segmentOnTop, false);
   lc.shutdown(segmentOnBottom, false);
 
+  lc.setIntensity(segmentOnTop, ledIntensity);
+  lc.setIntensity(segmentOnBottom, ledIntensity);
+
   // Check the rotation on startup
   y_axis = analogRead(rotationSensorY) / 10;
   if (y_axis < 35) {
