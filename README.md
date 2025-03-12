@@ -40,4 +40,4 @@ Prototype picture:
 
 <img src="assets/blender-wireframe.png" width="400">
 
-All the used 3D printing parts can be found at [here](./assets/models/).
+All the used 3D printing parts can be found [here](./assets/models/).
