@@ -11,7 +11,8 @@ int ledMatrixDIN = 12;
 // Analog pins
 uint8_t rotationSensorY = A0;
 
-LedControl lc = LedControl(ledMatrixDIN, ledMatrixCLK, ledMatrixCS, 2); // Initialize the matrix controller
+// Initialize the matrix controller
+LedControl lc = LedControl(ledMatrixDIN, ledMatrixCLK, ledMatrixCS, 2);
 
 /*
 Modes:
@@ -74,6 +75,7 @@ byte four[] = {B00000000, B00001000, B00010000, B00101000, B01000100, B00001000,
 byte five[] = {B00000000, B00001100, B00010010, B00010010, B01001000, B00101000, B00010000, B00000000};
 byte six[] = {B00000000, B00001100, B00010010, B00010010, B00001100, B01001000, B00110000, B00000000};
 
+// Flipped versions needed for when the clock gets rotated
 byte oneFlipped[] = {B00000000, B00000000, B00011100, B00001000, B00010000, B00100000, B00000000, B00000000};
 byte twoFlipped[] = {B00000000, B00001100, B00000010, B00000010, B01111100, B00100000, B00010000, B00000000};
 byte fiveFlipped[] = {B00000000, B00001000, B00010100, B00010010, B01001000, B01001000, B00110000, B00000000};
@@ -81,17 +83,6 @@ byte fiveFlipped[] = {B00000000, B00001000, B00010100, B00010010, B01001000, B01
 // Placeholder array for the different combinations of numbers to display times
 byte upperMatrixNumber[8];
 byte lowerMatrixNumber[8];
-
-// Define some notes
-#define NOTE_C4  262
-#define NOTE_E4  330
-#define NOTE_F4  349
-#define NOTE_G4  392
-#define NOTE_A4  440
-
-#define NOTE_C5  523
-#define NOTE_D5  587
-#define NOTE_G5  784
 
 void setup() {
   pinMode(buttonPin, INPUT);
@@ -149,33 +140,55 @@ void changeCurrentMode(int buttonState) {
     if (buttonState == HIGH && !buttonAlreadyPressed) {
 
       buttonAlreadyPressed = true;
-        
-      if (currentMode == 9) {
-        currentMode = 0;
-      } else {
-        currentMode++;
-      }
+      
+      currentMode = (currentMode + 1) % 10; // Ring buffer
 
-      if (currentMode == 0) {
-        delayBetweenCycles = 1;
-      } else if (currentMode == 1) {
-        delayBetweenCycles = 612;
-      } else if (currentMode == 2) {
-        delayBetweenCycles = 1836;
-      } else if (currentMode == 3) {
-        delayBetweenCycles = 5508;
-      } else if (currentMode == 4) {
-        delayBetweenCycles = 11628;
-      } else if (currentMode == 5) {
-        delayBetweenCycles = 17748;
-      } else if (currentMode == 6) {
-        delayBetweenCycles = 23868;
-      } else if (currentMode == 7) {
-        delayBetweenCycles = 36108;
-      } else if (currentMode == 8) {
-        delayBetweenCycles = 54468;
-      } else if (currentMode == 9) {
-        delayBetweenCycles = 72828;
+      switch(currentMode) {
+        case 0:
+          delayBetweenCycles = 1;
+          break;
+
+        case 1:
+          delayBetweenCycles = 612;
+          break;
+
+        case 2:
+          delayBetweenCycles = 1836;
+          break;
+
+        case 3:
+          delayBetweenCycles = 5508;
+          break;
+
+        case 4:
+          delayBetweenCycles = 11628;
+          break;
+
+        case 5:
+          delayBetweenCycles = 17748;
+          break;
+
+        case 6:
+          delayBetweenCycles = 23868;
+          break;
+
+        case 7:
+          delayBetweenCycles = 36108;
+          break;
+
+        case 8:
+          delayBetweenCycles = 54468;
+          break;
+        
+        case 9:
+          delayBetweenCycles = 72828;
+          break;
+
+        default:
+          // Use Mode 0 as default (endless)
+          delayBetweenCycles = 1;
+          currentMode = 0;
+          break;
       }
 
       showTimes(); // Display the current time
@@ -389,11 +402,6 @@ void animateSegments() {
   }
 
   alreadyRun = true;
-
-  // Only play the finishing melody when not in endless mode
-  if (currentMode != 0) {
-    playFinishedMelody();
-  }
 }
 
 // Animate the straight sandcorn fall
@@ -413,54 +421,4 @@ void animateStraightSandcornFall() {
     delay(animationDelayTime);
     lc.setLed(segmentOnBottom, i, 7 - i, false);
   }
-}
-
-// Play a finishing sound
-void playFinishedMelody() {
-  int tempo = 200;
-
-  // Super Mario World Game Over melody
-  int melody[] = {
-    NOTE_A4, 2,
-    NOTE_F4, 4,
-    NOTE_C4, 4,
-    NOTE_A4, 2,
-    NOTE_E4, 2,
-    NOTE_G4, 2,
-
-    NOTE_C5, 4,
-    NOTE_D5, 4,
-    NOTE_G5, 1
-  };
-
-  int notes = sizeof(melody) / sizeof(melody[0]) / 2;
-
-  // This calculates the duration of a whole note in ms
-  int wholenote = (60000 * 4) / tempo;
-
-  int divider = 0, noteDuration = 0;
-
-  for (int thisNote = 0; thisNote < notes * 2; thisNote = thisNote + 2) {
-    // Calculates the duration of each note
-    divider = melody[thisNote + 1];
-    if (divider > 0) {
-      // Regular note, just proceed
-      noteDuration = (wholenote) / divider;
-    } else if (divider < 0) {
-      // Dotted notes are represented with negative durations!!
-      noteDuration = (wholenote) / abs(divider);
-      noteDuration *= 1.5; // Increases the duration in half for dotted notes
-    }
-
-    // We only play the note for 90% of the duration, leaving 10% as a pause
-    tone(buzzerPin, melody[thisNote], noteDuration*0.9);
-
-    // Wait for the specified duration before playing the next note
-    delay(noteDuration);
-    
-    // Stop the waveform generation before the next note
-    noTone(buzzerPin);
-  }
-
-  pinMode(buzzerPin, LOW); // Needed to avoid annoying buzzing
 }
