@@ -18,7 +18,7 @@ Prototype picture:
 
 &rarr; [Schematic](./assets/schematic.png)
 
-&rarr; [3D-Printer files](./assets/models)
+&rarr; [3D-Printer files](./assets/models/)
 
 ## Hardware used
 
@@ -35,3 +35,9 @@ Prototype picture:
 ## Schematic
 
 <img src="assets/schematic.png" width="600">
+
+## 3D-Printer parts
+
+<img src="assets/blender-wireframe.png" width="400">
+
+All the used 3D printing parts can be found at [here](./assets/models/).
